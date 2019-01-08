@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test;
 import org.rocksdb.Options;
 import org.rocksdb.RocksDB;
 import org.rocksdb.RocksDBException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
 
@@ -14,7 +16,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class ReadWriteIntegrationTest {
 
-    private static final String DB_PATH = "C:\\tmp\\db\\";
+    private static Logger LOG = LoggerFactory.getLogger(ReadWriteIntegrationTest.class);
+
+    private static final String DB_PATH = System.getProperty("java.io.tmpdir") + System.getProperty("file.separator") + "db";
     private static RocksDB db;
 
     @BeforeAll
@@ -46,6 +50,28 @@ public class ReadWriteIntegrationTest {
         Trade loadedTrade = reader.get(tradeId, Trade.class);
         assertThat(loadedTrade).isEqualToComparingFieldByField(trade);
 
+    }
+
+
+    @Test
+    public void writeAndRead100KEvents() {
+        WireType wireType = WireType.BINARY_LIGHT;
+        final Writer writer = new Writer(db, wireType);
+        final Reader reader = new Reader(db, wireType);
+        final int count = 100000;
+        long start = System.currentTimeMillis();
+        for (int i = 0; i < count; i++) {
+            final Trade trade = createTrade(i);
+            writer.put(trade.getTradeId(), trade);
+        }
+        LOG.info("{} events persisted in {} ms", count, System.currentTimeMillis() - start);
+        start = System.currentTimeMillis();
+        for (int i = 0; i < count; i++) {
+            Trade loadedTrade = reader.get(i, Trade.class);
+            assertThat(loadedTrade.getSell()).isNotNull();
+            assertThat(loadedTrade.getTradeId()).isEqualTo(i);
+        }
+        LOG.info("{} events loaded in {} ms", count, System.currentTimeMillis() - start);
     }
 
     @Test
