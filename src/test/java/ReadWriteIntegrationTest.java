@@ -1,3 +1,5 @@
+import java.time.LocalDateTime;
+
 import model.HalfTrade;
 import model.Trade;
 import net.openhft.chronicle.wire.WireType;
@@ -10,8 +12,6 @@ import org.rocksdb.RocksDBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.LocalDateTime;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ReadWriteIntegrationTest {
@@ -20,12 +20,13 @@ public class ReadWriteIntegrationTest {
 
     private static final String DB_PATH = System.getProperty("java.io.tmpdir") + System.getProperty("file.separator") + "db";
     private static RocksDB db;
+    private static Options options;
 
     @BeforeAll
     public static void initAll() {
         RocksDB.loadLibrary();
         try {
-            Options options = new Options().setCreateIfMissing(true);
+            options = new Options().setCreateIfMissing(true);
             db = RocksDB.open(options, DB_PATH);
         } catch (RocksDBException e) {
             throw new IllegalStateException("Could not create DB", e);
@@ -35,6 +36,7 @@ public class ReadWriteIntegrationTest {
     @AfterAll
     public static void closeAll() {
         db.close();
+        options.close();
     }
 
     @Test
@@ -52,7 +54,6 @@ public class ReadWriteIntegrationTest {
 
     }
 
-
     @Test
     public void writeAndRead100KEvents() {
         WireType wireType = WireType.BINARY_LIGHT;
@@ -64,7 +65,13 @@ public class ReadWriteIntegrationTest {
             final Trade trade = createTrade(i);
             writer.put(trade.getTradeId(), trade);
         }
+        assertThat(writer.lastSequence()).isGreaterThanOrEqualTo(count);
         LOG.info("{} events persisted in {} ms", count, System.currentTimeMillis() - start);
+
+        start = System.currentTimeMillis();
+        writer.flush();
+        LOG.info("flushed in {} ms", System.currentTimeMillis() - start);
+
         start = System.currentTimeMillis();
         for (int i = 0; i < count; i++) {
             Trade loadedTrade = reader.get(i, Trade.class);

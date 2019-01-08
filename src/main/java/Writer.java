@@ -1,22 +1,28 @@
+import java.io.Closeable;
+import java.nio.ByteBuffer;
+
 import net.openhft.chronicle.bytes.Bytes;
 import net.openhft.chronicle.wire.Wire;
 import net.openhft.chronicle.wire.WireType;
+import org.rocksdb.FlushOptions;
 import org.rocksdb.RocksDB;
 import org.rocksdb.RocksDBException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.rocksdb.WriteOptions;
 
-import java.nio.ByteBuffer;
-
-public class Writer  {
-
-    private static Logger LOG = LoggerFactory.getLogger(Writer.class);
+public class Writer implements Closeable {
 
     private static ThreadLocal<Bytes<ByteBuffer>> keyBytes = ThreadLocal.withInitial(() -> Bytes.elasticByteBuffer(8));
     private static ThreadLocal<Bytes<ByteBuffer>> valueBytes = ThreadLocal.withInitial(() -> Bytes.elasticByteBuffer(128));
 
     private final RocksDB db;
     private final WireType wireType;
+    private final FlushOptions flushOptions = new FlushOptions()
+            .setWaitForFlush(true);
+    private final WriteOptions writeOptions = new WriteOptions()
+            .setDisableWAL(true)
+            .setSync(false)
+            .setIgnoreMissingColumnFamilies(false)
+            .setNoSlowdown(false);
 
     public Writer(RocksDB db, WireType wireType) {
         this.db = db;
@@ -24,21 +30,39 @@ public class Writer  {
     }
 
     public void put(long key, Object entity) {
-       Wire wire = wireType.apply( valueBytes.get().clear());
-        wire.write().object(entity);
         try {
-            db.put(asByteArray(key), wire.bytes().toByteArray());
-            LOG.trace("written : {}", wire);
+            db.put(writeOptions, keyAsBytes(key), valueAsBytes(entity));
         } catch (RocksDBException e) {
             throw new IllegalArgumentException("Write failed", e);
         }
+    }
+
+    private byte[] valueAsBytes(Object entity) {
+        Wire wire = wireType.apply(valueBytes.get().clear());
+        wire.write().object(entity);
+        return wire.bytes().toByteArray();
+    }
+
+    private byte[] keyAsBytes(long id) {
+        return keyBytes.get().clear().writeLong(id).toByteArray();
     }
 
     public long lastSequence() {
         return db.getLatestSequenceNumber();
     }
 
-    private byte[] asByteArray(long id) {
-        return keyBytes.get().clear().writeLong(id).toByteArray();
+    public void flush() {
+        try {
+            db.flush(flushOptions);
+        } catch (RocksDBException e) {
+            throw new IllegalArgumentException("Flush failed", e);
+        }
     }
+
+    @Override
+    public void close() {
+        flushOptions.close();
+        writeOptions.close();
+    }
+
 }
