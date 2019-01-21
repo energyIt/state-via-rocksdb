@@ -1,13 +1,18 @@
+package rocksdb;
+
 import java.io.Closeable;
 import java.nio.ByteBuffer;
+import java.util.Collection;
+import java.util.List;
+import java.util.function.LongFunction;
+import java.util.function.LongSupplier;
+import java.util.function.ObjLongConsumer;
+import java.util.function.ToLongFunction;
 
 import net.openhft.chronicle.bytes.Bytes;
 import net.openhft.chronicle.wire.Wire;
 import net.openhft.chronicle.wire.WireType;
-import org.rocksdb.FlushOptions;
-import org.rocksdb.RocksDB;
-import org.rocksdb.RocksDBException;
-import org.rocksdb.WriteOptions;
+import org.rocksdb.*;
 
 public class Writer implements Closeable {
 
@@ -32,6 +37,20 @@ public class Writer implements Closeable {
     public void put(long key, Object entity) {
         try {
             db.put(writeOptions, keyAsBytes(key), valueAsBytes(entity));
+        } catch (RocksDBException e) {
+            throw new IllegalArgumentException("Write failed", e);
+        }
+    }
+
+    /**
+     * Atomically writes all or nothing
+     */
+    public <T> void putAll(ToLongFunction<T> keySupplier, Iterable<T> entities) {
+        try (WriteBatch writeBatch = new WriteBatch()) {
+            for (T e : entities) {
+                writeBatch.put(keyAsBytes(keySupplier.applyAsLong(e)), valueAsBytes(e));
+            }
+            db.write(writeOptions,writeBatch);
         } catch (RocksDBException e) {
             throw new IllegalArgumentException("Write failed", e);
         }
