@@ -1,4 +1,5 @@
 import java.time.LocalDateTime;
+import java.util.List;
 
 import model.HalfTrade;
 import model.Trade;
@@ -79,12 +80,39 @@ public class ReadWriteIntegrationTest {
             assertThat(loadedTrade.getTradeId()).isEqualTo(i);
         }
         LOG.info("{} events loaded in {} ms", count, System.currentTimeMillis() - start);
+
+        start = System.currentTimeMillis();
+        final int idFrom = 100;
+        final int idTo = 999;
+        final int batchSize = idTo - idFrom + 1;
+        List<Trade> loadedTrades = reader.getAllBetween(idFrom, idTo, Trade.class);
+        assertThat(loadedTrades).hasSize(batchSize);
+        //        assertThat(loadedTrades.get(0).getTradeId()).isEqualTo(idFrom);
+        //        assertThat(loadedTrades.get(idTo-idFrom).getTradeId()).isEqualTo(idTo);
+        LOG.info("Batch of {} loaded in {} ms", batchSize, System.currentTimeMillis() - start);
     }
 
     @Test
     public void unknownIdReturnNull() {
         final Reader reader = new Reader(db, WireType.TEXT);
         assertThat(reader.get(999999999, Trade.class)).isNull();
+    }
+
+    @Test
+    public void getAllBetweenMustReturnOnlySpecifiedRange() {
+        WireType wireType = WireType.BINARY_LIGHT;
+        final Writer writer = new Writer(db, wireType);
+        final Reader reader = new Reader(db, wireType);
+
+        for (int i = 0; i < 20; i++) {
+            final Trade trade = createTrade(i);
+            writer.put(trade.getTradeId(), trade);
+        }
+
+        List<Trade> loadedTrades = reader.getAllBetween(11, 15, Trade.class);
+        assertThat(loadedTrades)
+                .hasSize(5)
+                .extracting(Trade::getTradeId).containsOnly(11L, 12L, 13L, 14L, 15L);
     }
 
     private static Trade createTrade(int tradeId) {
