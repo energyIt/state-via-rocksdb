@@ -1,5 +1,9 @@
 package repository;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import model.Trade;
 import net.openhft.chronicle.wire.WireType;
 import org.assertj.core.api.Assertions;
@@ -12,10 +16,6 @@ import rocksdb.AbstractIntegrationTest;
 import rocksdb.ReadWriteIntegrationTest;
 import rocksdb.Reader;
 import rocksdb.Writer;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 public class TradeRepositoryIntegrationTest extends AbstractIntegrationTest {
 
@@ -55,7 +55,7 @@ public class TradeRepositoryIntegrationTest extends AbstractIntegrationTest {
         List<Trade> batch = new ArrayList<>(1_000);
         int count = 1_000_000;
         for (int i = 0; i < count; i++) {
-            final Trade trade = createTrade(i, "M" + i % 231, "M" + i % 177);
+            final Trade trade = createTrade(i, "M" + i % 431, "M" + i % 91);
             if (i % 1_000 == 0) {
                 tradeRepository.tradesUpdated(batch);
                 batch.clear();
@@ -66,6 +66,7 @@ public class TradeRepositoryIntegrationTest extends AbstractIntegrationTest {
         LOG.info("{} Trades updated in in {} ms", count, System.currentTimeMillis() - start);
 
         tradeRepository = newRepo();
+        System.gc();
         start = System.currentTimeMillis();
         tradeRepository.init();
         LOG.info("intialized in {} ms", System.currentTimeMillis() - start);
@@ -73,7 +74,12 @@ public class TradeRepositoryIntegrationTest extends AbstractIntegrationTest {
         start = System.currentTimeMillis();
         ImmutableList<Trade> readTrades = tradeRepository.getByMemberId("M1");
         LOG.info("getByMemberId returned in {} ms (size={})", System.currentTimeMillis() - start, readTrades.size());
+        Assertions.assertThat(readTrades).isNotEmpty();
+        Assertions.assertThat(readTrades.size()).isGreaterThan(9000);
 
+        start = System.currentTimeMillis();
+        readTrades = tradeRepository.getByMemberId("M321");
+        LOG.info("getByMemberId returned in {} ms (size={})", System.currentTimeMillis() - start, readTrades.size());
         Assertions.assertThat(readTrades).isNotEmpty();
         Assertions.assertThat(readTrades.size()).isGreaterThan(1000);
     }
