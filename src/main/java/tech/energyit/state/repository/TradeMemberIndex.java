@@ -1,14 +1,14 @@
-package repository;
-
-import model.Trade;
-import org.eclipse.collections.api.list.primitive.ImmutableLongList;
-import org.eclipse.collections.api.list.primitive.MutableLongList;
-import org.eclipse.collections.impl.list.mutable.primitive.LongArrayList;
-import org.jetbrains.annotations.NotNull;
+package tech.energyit.state.repository;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+
+import org.eclipse.collections.api.list.primitive.ImmutableLongList;
+import org.eclipse.collections.api.list.primitive.MutableLongList;
+import org.eclipse.collections.impl.list.mutable.primitive.LongArrayList;
+import org.jetbrains.annotations.NotNull;
+import tech.energyit.state.model.Trade;
 
 /**
  * NOTE: if there is only one writing thread the lock for {@link #add(Trade)} is biased.

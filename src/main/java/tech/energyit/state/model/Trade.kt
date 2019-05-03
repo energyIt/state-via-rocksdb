@@ -1,4 +1,4 @@
-package model
+package tech.energyit.state.model
 
 import net.openhft.chronicle.wire.AbstractBytesMarshallable
 import java.time.LocalDateTime

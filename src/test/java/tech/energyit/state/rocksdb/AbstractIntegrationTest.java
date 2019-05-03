@@ -1,23 +1,14 @@
-package rocksdb;
+package tech.energyit.state.rocksdb;
 
-import model.HalfTrade;
-import model.Trade;
-import net.openhft.chronicle.wire.WireType;
+import java.time.LocalDateTime;
+
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
 import org.rocksdb.Options;
 import org.rocksdb.RocksDB;
 import org.rocksdb.RocksDBException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import tech.energyit.state.model.HalfTrade;
+import tech.energyit.state.model.Trade;
 
 public class AbstractIntegrationTest {
 

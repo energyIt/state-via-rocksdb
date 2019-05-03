@@ -1,7 +1,7 @@
-package rocksdb;
+package tech.energyit.state.rocksdb;
 
+import java.io.Closeable;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.LongPredicate;
@@ -15,10 +15,11 @@ import org.rocksdb.RocksDBException;
 import org.rocksdb.RocksIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tech.energyit.state.repository.Reader;
 
-public class Reader implements AutoCloseable {
+public class RocksDbReader implements Closeable, Reader {
 
-    private static Logger LOG = LoggerFactory.getLogger(Reader.class);
+    private static final Logger LOG = LoggerFactory.getLogger(RocksDbReader.class);
 
     private static ThreadLocal<Bytes<ByteBuffer>> keyBytes = ThreadLocal.withInitial(() -> Bytes.elasticByteBuffer(8));
     private static ThreadLocal<Bytes<ByteBuffer>> valueBytes = ThreadLocal.withInitial(() -> Bytes.elasticByteBuffer(128));
@@ -26,11 +27,12 @@ public class Reader implements AutoCloseable {
     private final RocksDB db;
     private final WireType wireType;
 
-    public Reader(RocksDB db, WireType wireType) {
+    public RocksDbReader(RocksDB db, WireType wireType) {
         this.db = db;
         this.wireType = wireType;
     }
 
+    @Override
     public <T> T get(long id, Class<T> clazz) {
         byte[] value;
         try {
@@ -55,12 +57,14 @@ public class Reader implements AutoCloseable {
     /**
      * @return all items with IDs between <code>idFrom</code> and <code>idTo</code>, both included.
      */
+    @Override
     public <T> List<T> getAllBetween(long idFrom, long idTo, Class<T> clazz) {
         final List<T> result = new FastList<>();
         forEach(id -> id >= idFrom && id <= idTo, result::add, clazz);
         return result;
     }
 
+    @Override
     public <T> void forEach(LongPredicate idPredicate, Consumer<T> handler, Class<T> clazz) {
         try (RocksIterator iter = db.newIterator()) {
             for (iter.seekToFirst(); iter.isValid(); iter.next()) {

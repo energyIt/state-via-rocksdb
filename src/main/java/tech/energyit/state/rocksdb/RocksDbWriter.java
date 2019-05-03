@@ -1,20 +1,20 @@
-package rocksdb;
+package tech.energyit.state.rocksdb;
 
 import java.io.Closeable;
 import java.nio.ByteBuffer;
-import java.util.Collection;
-import java.util.List;
-import java.util.function.LongFunction;
-import java.util.function.LongSupplier;
-import java.util.function.ObjLongConsumer;
 import java.util.function.ToLongFunction;
 
 import net.openhft.chronicle.bytes.Bytes;
 import net.openhft.chronicle.wire.Wire;
 import net.openhft.chronicle.wire.WireType;
-import org.rocksdb.*;
+import org.rocksdb.FlushOptions;
+import org.rocksdb.RocksDB;
+import org.rocksdb.RocksDBException;
+import org.rocksdb.WriteBatch;
+import org.rocksdb.WriteOptions;
+import tech.energyit.state.repository.Writer;
 
-public class Writer implements Closeable {
+public class RocksDbWriter implements Closeable, Writer {
 
     private static ThreadLocal<Bytes<ByteBuffer>> keyBytes = ThreadLocal.withInitial(() -> Bytes.elasticByteBuffer(8));
     private static ThreadLocal<Bytes<ByteBuffer>> valueBytes = ThreadLocal.withInitial(() -> Bytes.elasticByteBuffer(128));
@@ -29,7 +29,7 @@ public class Writer implements Closeable {
             .setIgnoreMissingColumnFamilies(false)
             .setNoSlowdown(false);
 
-    public Writer(RocksDB db, WireType wireType) {
+    public RocksDbWriter(RocksDB db, WireType wireType) {
         this.db = db;
         this.wireType = wireType;
     }

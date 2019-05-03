@@ -1,27 +1,27 @@
-package rocksdb;
-
-import model.Trade;
-import net.openhft.chronicle.wire.WireType;
-import org.junit.jupiter.api.Test;
-import org.rocksdb.RocksDBException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+package tech.energyit.state.rocksdb;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import net.openhft.chronicle.wire.WireType;
+import org.junit.jupiter.api.Test;
+import org.rocksdb.RocksDBException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import tech.energyit.state.model.Trade;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ReadWriteIntegrationTest extends AbstractIntegrationTest {
+public class RocksDbReadWriteIntegrationTest extends AbstractIntegrationTest {
 
-    private static Logger LOG = LoggerFactory.getLogger(ReadWriteIntegrationTest.class);
+    private static Logger LOG = LoggerFactory.getLogger(RocksDbReadWriteIntegrationTest.class);
 
     @Test
     public void writtenTradeDatasMustBeLoadedFully() {
         WireType wireType = WireType.BINARY_LIGHT;
-        try (final Writer writer = new Writer(getDb(), wireType);
-             final Reader reader = new Reader(getDb(), wireType)) {
+        try (final RocksDbWriter writer = new RocksDbWriter(getDb(), wireType);
+                final RocksDbReader reader = new RocksDbReader(getDb(), wireType)) {
 
             int tradeId = 100;
 
@@ -35,8 +35,8 @@ public class ReadWriteIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void writtenTradesInBatchMustBeLoadedFully() {
         WireType wireType = WireType.BINARY_LIGHT;
-        try (final Writer writer = new Writer(getDb(), wireType);
-             final Reader reader = new Reader(getDb(), wireType)) {
+        try (final RocksDbWriter writer = new RocksDbWriter(getDb(), wireType);
+                final RocksDbReader reader = new RocksDbReader(getDb(), wireType)) {
 
             List<Trade> trades = Arrays.asList(createTrade(1), createTrade(2), createTrade(3));
             writer.putAll(Trade::getTradeId, trades);
@@ -50,8 +50,8 @@ public class ReadWriteIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void writeAndRead100KEvents() throws RocksDBException {
         WireType wireType = WireType.BINARY_LIGHT;
-        try (final Writer writer = new Writer(getDb(), wireType);
-             final Reader reader = new Reader(getDb(), wireType)) {
+        try (final RocksDbWriter writer = new RocksDbWriter(getDb(), wireType);
+                final RocksDbReader reader = new RocksDbReader(getDb(), wireType)) {
             final int count = 100000;
             long start = System.currentTimeMillis();
             for (int i = 0; i < count; i++) {
@@ -106,15 +106,15 @@ public class ReadWriteIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void unknownIdReturnNull() {
-        final Reader reader = new Reader(getDb(), WireType.TEXT);
+        final RocksDbReader reader = new RocksDbReader(getDb(), WireType.TEXT);
         assertThat(reader.get(999999999, Trade.class)).isNull();
     }
 
     @Test
     public void getAllBetweenMustReturnOnlySpecifiedRange() {
         WireType wireType = WireType.BINARY_LIGHT;
-        try (final Writer writer = new Writer(getDb(), wireType);
-             final Reader reader = new Reader(getDb(), wireType)) {
+        try (final RocksDbWriter writer = new RocksDbWriter(getDb(), wireType);
+                final RocksDbReader reader = new RocksDbReader(getDb(), wireType)) {
 
             for (int i = 0; i < 20; i++) {
                 final Trade trade = createTrade(i);

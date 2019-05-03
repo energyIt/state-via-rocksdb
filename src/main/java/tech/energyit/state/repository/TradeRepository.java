@@ -1,11 +1,7 @@
-package repository;
+package tech.energyit.state.repository;
 
-import model.Trade;
 import org.eclipse.collections.api.list.ImmutableList;
-import rocksdb.Reader;
-import rocksdb.Writer;
-
-import java.util.List;
+import tech.energyit.state.model.Trade;
 
 /**
  * NOTE: Repositories are updated only from single thread.
