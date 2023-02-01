@@ -3,7 +3,7 @@ package tech.energyit.state.model
 import net.openhft.chronicle.bytes.BytesMarshallable
 import java.time.LocalDateTime
 
-public class Trade(
+data class Trade(
     val tradeId: Long,
     val state: String,
     val contractId: Long,
@@ -12,5 +12,5 @@ public class Trade(
     val execTime: LocalDateTime,
     val revisionNo: Long = 0,
     val buy: HalfTrade,
-    val sell: HalfTrade
+    val sell: HalfTrade,
 ) : BytesMarshallable

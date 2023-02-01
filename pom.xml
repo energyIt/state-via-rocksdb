@@ -9,8 +9,8 @@
     <version>0.1-SNAPSHOT</version>
 
     <properties>
-        <junit.jupiter.version>5.3.2</junit.jupiter.version>
-        <kotlin.version>1.3.11</kotlin.version>
+        <junit.jupiter.version>5.9.2</junit.jupiter.version>
+        <kotlin.version>1.8.0</kotlin.version>
     </properties>
 
     <dependencies>
@@ -22,13 +22,13 @@
         <dependency>
             <groupId>org.eclipse.collections</groupId>
             <artifactId>eclipse-collections-api</artifactId>
-            <version>9.2.0</version>
+            <version>11.1.0</version>
         </dependency>
 
         <dependency>
             <groupId>org.eclipse.collections</groupId>
             <artifactId>eclipse-collections</artifactId>
-            <version>9.2.0</version>
+            <version>11.1.0</version>
         </dependency>
         <dependency>
             <groupId>net.openhft</groupId>
@@ -37,7 +37,7 @@
         </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-stdlib-jdk8</artifactId>
+            <artifactId>kotlin-stdlib</artifactId>
             <version>${kotlin.version}</version>
         </dependency>
         <dependency>
@@ -49,7 +49,7 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>1.2.3</version>
+            <version>1.4.5</version>
         </dependency>
 
         <!-- test : -->
@@ -74,7 +74,7 @@
         <dependency>
             <groupId>org.assertj</groupId>
             <artifactId>assertj-core</artifactId>
-            <version>3.11.1</version>
+            <version>3.24.2</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -108,7 +108,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.0</version>
+                <version>3.10.1</version>
                 <executions>
                     <execution>
                         <id>compile</id>
@@ -136,6 +136,24 @@
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.0.0-M8</version>
+                <configuration>
+                    <argLine>
+                        --add-exports=java.base/jdk.internal.ref=ALL-UNNAMED
+                        --add-exports=java.base/sun.nio.ch=ALL-UNNAMED
+                        --add-exports=jdk.unsupported/sun.misc=ALL-UNNAMED
+                        --add-exports=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED
+                        --add-opens=jdk.compiler/com.sun.tools.javac=ALL-UNNAMED
+                        --add-opens=java.base/java.lang=ALL-UNNAMED
+                        --add-opens=java.base/java.lang.reflect=ALL-UNNAMED
+                        --add-opens=java.base/java.io=ALL-UNNAMED
+                        --add-opens=java.base/java.util=ALL-UNNAMED
+                    </argLine>
                 </configuration>
             </plugin>
         </plugins>
