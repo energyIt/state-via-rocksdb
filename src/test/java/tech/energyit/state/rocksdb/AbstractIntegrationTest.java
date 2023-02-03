@@ -12,7 +12,7 @@ import tech.energyit.state.model.Trade;
 
 public class AbstractIntegrationTest {
 
-    private static final String DB_PATH = System.getProperty("java.io.tmpdir") + System.getProperty("file.separator") + "db";
+    private static final String DB_PATH = System.getProperty("java.io.tmpdir") + System.getProperty("file.separator") + "db" + System.nanoTime();
     private static RocksDB db;
     private static Options options;
 

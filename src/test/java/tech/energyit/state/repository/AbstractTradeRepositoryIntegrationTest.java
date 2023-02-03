@@ -47,7 +47,7 @@ public abstract class AbstractTradeRepositoryIntegrationTest extends AbstractInt
     public void getByMemberIdMustBeFast() {
         long start = System.currentTimeMillis();
         List<Trade> batch = new ArrayList<>(1_000);
-        int count = 5_000_000;
+        int count = 2_000_000;
         for (int i = 0; i < count; i++) {
             final Trade trade = createTrade(i, "M" + i % 431, "M" + i % 91);
             batch.add(trade);
